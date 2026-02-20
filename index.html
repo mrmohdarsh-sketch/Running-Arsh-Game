@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arsh Games - Stickman Runner</title>
+    <style>
+        * { padding: 0; margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; }
+        
+        body {
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            border-bottom: 2px solid black;
+            background-color: white;
+            position: relative;
+            width: 800px;
+            height: 200px;
+        }
+
+        /* Background Text */
+        .bg-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.05); /* Light watermark */
+            z-index: 0;
+            white-space: nowrap;
+        }
+
+        /* Character */
+        #stickman {
+            width: 40px;
+            height: 50px;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            z-index: 1;
+        }
+
+        /* Obstacles */
+        .obstacle {
+            width: 40px;
+            height: 30px;
+            position: absolute;
+            bottom: 0;
+            right: -50px;
+            font-size: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Score */
+        #scoreBoard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Over Screen */
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border: 2px solid black;
+            z-index: 10;
+        }
+
+        .skull { font-size: 60px; }
+
+        /* Animation */
+        .animate-jump {
+            animation: jump 0.5s linear;
+        }
+
+        @keyframes jump {
+            0% { bottom: 0; }
+            30% { bottom: 100px; }
+            70% { bottom: 100px; }
+            100% { bottom: 0; }
+        }
+    </style>
+</head>
+<body onclick="jump()">
+
+    <div id="gameCanvas">
+        <div class="bg-text">ARSH GAMES</div>
+        <div id="scoreBoard">Score: 0</div>
+        
+        <div id="stickman">
+            <svg viewBox="0 0 100 120" width="100%" height="100%">
+                <circle cx="50" cy="20" r="15" fill="black" />
+                <line x1="50" y1="35" x2="50" y2="80" stroke="black" stroke-width="5" />
+                <line x1="50" y1="50" x2="20" y2="70" stroke="black" stroke-width="5" />
+                <line x1="50" y1="50" x2="80" y2="70" stroke="black" stroke-width="5" />
+                <line x1="50" y1="80" x2="30" y2="110" stroke="black" stroke-width="5" />
+                <line x1="50" y1="80" x2="70" y2="110" stroke="black" stroke-width="5" />
+            </svg>
+        </div>
+
+        <div id="obstacle" class="obstacle">🚗</div>
+
+        <div id="gameOver">
+            <div class="skull">💀</div>
+            <h1>GAME OVER</h1>
+            <p id="finalScore"></p>
+            <button onclick="resetGame()" style="margin-top:10px; padding: 5px 15px; cursor:pointer;">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        const stickman = document.getElementById("stickman");
+        const obstacle = document.getElementById("obstacle");
+        const scoreBoard = document.getElementById("scoreBoard");
+        const gameOverScreen = document.getElementById("gameOver");
+        const finalScoreText = document.getElementById("finalScore");
+
+        let score = 0;
+        let gameSpeed = 2;
+        let isGameOver = false;
+        let items = ["🚗", "🚲", "🏍️", "🚛"];
+
+        function jump() {
+            if (isGameOver) return;
+            if (stickman.classList != "animate-jump") {
+                stickman.classList.add("animate-jump");
+                setTimeout(() => {
+                    stickman.classList.remove("animate-jump");
+                }, 500);
+            }
+        }
+
+        let checkDead = setInterval(function() {
+            if (isGameOver) return;
+
+            let stickmanTop = parseInt(window.getComputedStyle(stickman).getPropertyValue("top"));
+            let obstacleLeft = parseInt(window.getComputedStyle(obstacle).getPropertyValue("left"));
+
+            // Collision Detection
+            if (obstacleLeft < 90 && obstacleLeft > 50 && stickmanTop >= 150) {
+                gameOver();
+            }
+        }, 10);
+
+        // Move Obstacle
+        let moveObstacle = setInterval(function() {
+            if (isGameOver) return;
+
+            let obstacleLeft = parseInt(window.getComputedStyle(obstacle).getPropertyValue("left"));
+            
+            if (obstacleLeft < -50) {
+                // Reset obstacle position
+                obstacle.style.left = "800px";
+                // Change obstacle icon
+                obstacle.innerText = items[Math.floor(Math.random() * items.length)];
+                // Increase Score
+                score++;
+                scoreBoard.innerText = "Score: " + score;
+                // Increase Speed
+                gameSpeed += 0.2;
+            } else {
+                obstacle.style.left = (obstacleLeft - gameSpeed) + "px";
+            }
+        }, 10);
+
+        function gameOver() {
+            isGameOver = true;
+            gameOverScreen.style.display = "block";
+            finalScoreText.innerText = "Final Score: " + score;
+            obstacle.style.display = "none";
+        }
+
+        function resetGame() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
+
